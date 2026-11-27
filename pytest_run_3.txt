@@ -1,0 +1,96 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\wolf_\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe
+rootdir: C:\Users\wolf_\Documents\deepseek-harness\default-workspace\qa_task
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.16.0, asyncio-1.5.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 15 items
+
+tests/test_auth.py::test_register_returns_201_and_access_token PASSED    [  6%]
+tests/test_auth.py::test_register_rejects_duplicate_username PASSED      [ 13%]
+tests/test_auth.py::test_register_rejects_invalid_email FAILED           [ 20%]
+tests/test_auth.py::test_register_rejects_too_short_password FAILED      [ 26%]
+tests/test_auth.py::test_login_returns_access_token PASSED               [ 33%]
+tests/test_auth.py::test_login_rejects_wrong_password PASSED             [ 40%]
+tests/test_auth.py::test_login_rejects_unknown_user PASSED               [ 46%]
+tests/test_profile.py::test_profile_requires_authorization PASSED        [ 53%]
+tests/test_profile.py::test_profile_rejects_invalid_token PASSED         [ 60%]
+tests/test_profile.py::test_profile_rejects_non_bearer_scheme FAILED     [ 66%]
+tests/test_profile.py::test_get_profile_returns_registered_data PASSED   [ 73%]
+tests/test_profile.py::test_update_profile_changes_email_and_name PASSED [ 80%]
+tests/test_profile.py::test_update_profile_is_persisted PASSED           [ 86%]
+tests/test_profile.py::test_update_profile_rejects_empty_body FAILED     [ 93%]
+tests/test_profile.py::test_update_profile_requires_authorization PASSED [100%]
+
+================================== FAILURES ===================================
+_____________________ test_register_rejects_invalid_email _____________________
+
+client = <httpx.AsyncClient object at 0x00000233EAA60DA0>
+
+    async def test_register_rejects_invalid_email(client: httpx.AsyncClient) -> None:
+        payload = {**REGISTER_PAYLOAD, "email": "not-an-email"}
+    
+        response = await client.post("/api/register", json=payload)
+    
+>       assert response.status_code == 422
+E       assert 201 == 422
+E        +  where 201 = <Response [201 Created]>.status_code
+
+tests\test_auth.py:35: AssertionError
+__________________ test_register_rejects_too_short_password ___________________
+
+client = <httpx.AsyncClient object at 0x00000233EAA629C0>
+
+    async def test_register_rejects_too_short_password(client: httpx.AsyncClient) -> None:
+        payload = {**REGISTER_PAYLOAD, "password": "1"}
+    
+        response = await client.post("/api/register", json=payload)
+    
+>       assert response.status_code == 422
+E       assert 201 == 422
+E        +  where 201 = <Response [201 Created]>.status_code
+
+tests\test_auth.py:43: AssertionError
+___________________ test_profile_rejects_non_bearer_scheme ____________________
+
+client = <httpx.AsyncClient object at 0x00000233EAAC1D30>
+auth_headers = {'Authorization': 'Bearer 1eca4028cd974ee99465c784432859c7'}
+
+    async def test_profile_rejects_non_bearer_scheme(
+        client: httpx.AsyncClient, auth_headers: dict[str, str]
+    ) -> None:
+        """�������� �����, �� �������� ����� �����������, �� ������ ������ ������."""
+        token = auth_headers["Authorization"].split()[-1]
+    
+        response = await client.get(
+            "/api/profile",
+            headers={"Authorization": f"Basic {token}"},
+        )
+    
+>       assert response.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests\test_profile.py:37: AssertionError
+___________________ test_update_profile_rejects_empty_body ____________________
+
+client = <httpx.AsyncClient object at 0x00000233EAAC2510>
+auth_headers = {'Authorization': 'Bearer 3d9735c6e02e4cb5bcced3859e216d9c'}
+
+    async def test_update_profile_rejects_empty_body(
+        client: httpx.AsyncClient, auth_headers: dict[str, str]
+    ) -> None:
+        response = await client.put("/api/profile", headers=auth_headers, json={})
+    
+>       assert response.status_code == 422
+E       assert 200 == 422
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests\test_profile.py:89: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_auth.py::test_register_rejects_invalid_email - assert 201 =...
+FAILED tests/test_auth.py::test_register_rejects_too_short_password - assert ...
+FAILED tests/test_profile.py::test_profile_rejects_non_bearer_scheme - assert...
+FAILED tests/test_profile.py::test_update_profile_rejects_empty_body - assert...
+======================== 4 failed, 11 passed in 0.17s =========================
